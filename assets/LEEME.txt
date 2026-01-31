@@ -1,0 +1,34 @@
+# INSTRUCCIONES PARA AGREGAR TU LOGO
+
+## 📌 ¡IMPORTANTE! 
+
+El sitio web está **100% funcional**, pero necesita tu logo personalizado para verse perfecto.
+
+## 🎨 Cómo Agregar Tu Logo:
+
+1. **Prepara tu logo:**
+   - Formato: `.png` (con fondo transparente preferiblemente)
+   - Tamaño: 500x500 px o más (cuadrado)
+   - Nombre: `logo.png`
+
+2. **Reemplaza el placeholder:**
+   - Ve a la carpeta: `StickerSwap/assets/`
+   - **BORRA** el archivo `logo-placeholder.svg`
+   - **COPIA** tu archivo `logo.png` aquí
+
+3. **¡Listo!**
+   - Recarga la página en tu navegador
+   - Tu logo aparecerá en toda la web
+
+## 🚀 Para Ver el Sitio Ahora:
+
+```powershell
+cd "C:\Users\vseno\Desktop\StickerSwap"
+Start-Process index.html
+```
+
+O simplemente haz **doble clic** en `index.html`
+
+---
+
+Por ahora, hay un **logo temporal SVG** que muestra "SS SWAP" mientras agregas el tuyo.

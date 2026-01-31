@@ -1,0 +1,17 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1800ad;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00bf63;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="250" cy="250" r="240" fill="url(#bgGradient)"/>
+  <rect x="150" y="120" width="200" height="260" rx="15" fill="white" stroke="#1800ad" stroke-width="6"/>
+  <rect x="170" y="140" width="160" height="120" rx="8" fill="#00bf63" opacity="0.3"/>
+  <text x="250" y="310" font-family="Orbitron, Arial, sans-serif" font-size="48" font-weight="900" fill="#1800ad" text-anchor="middle">SS</text>
+  <text x="250" y="345" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#00bf63" text-anchor="middle">SWAP</text>
+  <circle cx="390" cy="140" r="45" fill="white" opacity="0.9"/>
+  <text x="390" y="155" font-size="40" text-anchor="middle"></text>
+  <circle cx="110" cy="360" r="45" fill="white" opacity="0.9"/>
+  <text x="110" y="375" font-size="35" text-anchor="middle"></text>
+</svg>
