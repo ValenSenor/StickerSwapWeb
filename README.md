@@ -10,7 +10,6 @@ StickerSwap/
 ├── index.html          # Página principal
 ├── terminos.html       # Términos y Condiciones
 ├── privacidad.html     # Política de Privacidad
-├── cookies.html        # Política de Cookies
 ├── styles.css          # Estilos CSS
 ├── script.js           # JavaScript interactivo
 ├── assets/             # Carpeta de recursos
@@ -57,7 +56,7 @@ npx http-server -p 8000
 - ✅ **Animaciones suaves** - Efectos modernos y profesionales
 - ✅ **FAQ interactivo** - Preguntas frecuentes con acordeón
 - ✅ **Navegación fluida** - Scroll suave entre secciones
-- ✅ **Páginas legales completas** - Términos, privacidad y cookies
+- ✅ **Páginas legales completas** - Términos y privacidad
 - ✅ **Fuentes modernas** - Orbitron + Inter de Google Fonts
 - ✅ **Colores personalizados** - Azul #1800ad y Verde #00bf63
 
