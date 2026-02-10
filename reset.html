@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña | StickerSwap</title>
+    <style>
+        body { background: #1800ad; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .btn { background: #00bf63; color: white; padding: 15px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
+        .logo { width: 150px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <img src="assets/logo.png" alt="StickerSwap Logo" class="logo">
+    <h2>Restableciendo tu contraseña...</h2>
+    <p>Si no eres redirigido automáticamente, toca el botón de abajo.</p>
+    
+    <a id="app-link" href="#" class="btn">Abrir StickerSwap</a>
+
+    <script>
+        // 1. Obtenemos el hash de la URL que manda Supabase (#access_token=...)
+        const hash = window.location.hash;
+
+        if (hash) {
+            // 2. Definimos tu esquema de Deep Link (el que configuraste en tu app)
+            const appUrl = "stickerswap://reset-password" + hash;
+            
+            // 3. Intentamos redirigir automáticamente
+            window.location.href = appUrl;
+
+            // 4. Actualizamos el botón por si el redireccionamiento falla
+            document.getElementById('app-link').href = appUrl;
+        } else {
+            document.querySelector('h2').innerText = "Enlace inválido";
+            document.querySelector('p').innerText = "Por favor, solicita un nuevo correo desde la aplicación.";
+        }
+    </script>
+</body>
+</html>
