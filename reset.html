@@ -22,14 +22,44 @@
         const hash = window.location.hash;
 
         if (hash) {
-            // 2. Definimos tu esquema de Deep Link (el que configuraste en tu app)
+            // 2. Definimos el esquema de Deep Link
             const appUrl = "stickerswap://reset-password" + hash;
             
-            // 3. Intentamos redirigir automáticamente
-            window.location.href = appUrl;
-
-            // 4. Actualizamos el botón por si el redireccionamiento falla
-            document.getElementById('app-link').href = appUrl;
+            // 3. Actualizamos el botón primero
+            const appLink = document.getElementById('app-link');
+            appLink.href = appUrl;
+            
+            // 4. Intentamos abrir la app con un click en el botón después de un pequeño delay
+            setTimeout(() => {
+                // Crear un iframe oculto para intentar abrir la app (mejor compatibilidad en iOS)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = appUrl;
+                document.body.appendChild(iframe);
+                
+                // Limpiar el iframe después de un momento
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 1000);
+            }, 100);
+            
+            // 5. Agregar listener al botón para intentar nuevamente
+            appLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = appUrl;
+                
+                // Si después de 2 segundos sigue aquí, mostrar mensaje de ayuda
+                setTimeout(() => {
+                    document.querySelector('h2').innerText = "¿No se abrió la app?";
+                    document.querySelector('p').innerText = "Asegúrate de tener StickerSwap instalada. Si el problema persiste, copia el enlace de abajo y ábrelo en tu navegador:";
+                    
+                    // Mostrar el enlace para copiar
+                    const copyDiv = document.createElement('div');
+                    copyDiv.style.cssText = 'margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; word-break: break-all; font-size: 12px;';
+                    copyDiv.innerText = appUrl;
+                    document.body.appendChild(copyDiv);
+                }, 2000);
+            });
         } else {
             document.querySelector('h2').innerText = "Enlace inválido";
             document.querySelector('p').innerText = "Por favor, solicita un nuevo correo desde la aplicación.";
