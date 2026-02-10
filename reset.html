@@ -5,64 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer Contraseña | StickerSwap</title>
     <style>
-        body { background: #1800ad; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .btn { background: #00bf63; color: white; padding: 15px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
-        .logo { width: 150px; margin-bottom: 20px; }
+        body { 
+            background: #1800ad; 
+            color: white; 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            padding: 20px;
+            text-align: center;
+        }
+        .btn { 
+            background: #00bf63; 
+            color: white; 
+            padding: 15px 25px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            margin-top: 20px; 
+            display: inline-block;
+        }
+        .logo { 
+            width: 150px; 
+            margin-bottom: 20px; 
+        }
+        .debug { 
+            margin-top: 20px; 
+            padding: 10px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 5px; 
+            font-size: 11px; 
+            word-break: break-all;
+            max-width: 90%;
+        }
     </style>
 </head>
 <body>
     <img src="assets/logo.png" alt="StickerSwap Logo" class="logo">
     <h2>Restableciendo tu contraseña...</h2>
-    <p>Si no eres redirigido automáticamente, toca el botón de abajo.</p>
+    <p id="message">Tocá el botón para abrir StickerSwap</p>
     
     <a id="app-link" href="#" class="btn">Abrir StickerSwap</a>
+    
+    <div id="debug-info" class="debug" style="display: none;"></div>
 
     <script>
-        // 1. Obtenemos el hash de la URL que manda Supabase (#access_token=...)
+        // Obtener el hash de la URL (#access_token=...&type=recovery)
         const hash = window.location.hash;
-
-        if (hash) {
-            // 2. Definimos el esquema de Deep Link
-            const appUrl = "stickerswap://reset-password" + hash;
+        const debugDiv = document.getElementById('debug-info');
+        
+        if (hash && hash.length > 1) {
+            // Remover el # inicial
+            const hashWithoutSymbol = hash.substring(1);
             
-            // 3. Actualizamos el botón primero
+            // Convertir el hash en query params para iOS
+            // De: stickerswap://reset-password#access_token=abc
+            // A:  stickerswap://reset-password?access_token=abc
+            const appUrl = "stickerswap://reset-password?" + hashWithoutSymbol;
+            
+            // Mostrar info de debug
+            debugDiv.innerHTML = "URL generada:<br>" + appUrl;
+            debugDiv.style.display = 'block';
+            
+            // Actualizar el botón
             const appLink = document.getElementById('app-link');
             appLink.href = appUrl;
             
-            // 4. Intentamos abrir la app con un click en el botón después de un pequeño delay
-            setTimeout(() => {
-                // Crear un iframe oculto para intentar abrir la app (mejor compatibilidad en iOS)
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = appUrl;
-                document.body.appendChild(iframe);
-                
-                // Limpiar el iframe después de un momento
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 1000);
-            }, 100);
-            
-            // 5. Agregar listener al botón para intentar nuevamente
-            appLink.addEventListener('click', function(e) {
-                e.preventDefault();
+            // Función para intentar abrir la app
+            function tryOpenApp() {
+                // Método 1: Cambiar location directamente
                 window.location.href = appUrl;
                 
-                // Si después de 2 segundos sigue aquí, mostrar mensaje de ayuda
+                // Método 2: Si no funciona después de 1 segundo, mostrar instruciones
                 setTimeout(() => {
-                    document.querySelector('h2').innerText = "¿No se abrió la app?";
-                    document.querySelector('p').innerText = "Asegúrate de tener StickerSwap instalada. Si el problema persiste, copia el enlace de abajo y ábrelo en tu navegador:";
-                    
-                    // Mostrar el enlace para copiar
-                    const copyDiv = document.createElement('div');
-                    copyDiv.style.cssText = 'margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; word-break: break-all; font-size: 12px;';
-                    copyDiv.innerText = appUrl;
-                    document.body.appendChild(copyDiv);
-                }, 2000);
+                    document.getElementById('message').innerText = 
+                        "Si la app no se abrió, toca el botón nuevamente";
+                }, 1000);
+            }
+            
+            // Listener del botón
+            appLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                tryOpenApp();
             });
+            
+            // Intentar abrir automáticamente después de un breve delay
+            setTimeout(() => {
+                tryOpenApp();
+            }, 500);
+            
         } else {
             document.querySelector('h2').innerText = "Enlace inválido";
-            document.querySelector('p').innerText = "Por favor, solicita un nuevo correo desde la aplicación.";
+            document.getElementById('message').innerText = 
+                "El enlace no contiene la información necesaria. Por favor, solicita un nuevo correo desde la aplicación.";
+            document.getElementById('app-link').style.display = 'none';
+            debugDiv.innerHTML = "Hash no encontrado en URL";
+            debugDiv.style.display = 'block';
         }
     </script>
 </body>
