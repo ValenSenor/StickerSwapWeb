@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer Contraseña | StickerSwap</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             background: #1800ad; 
             color: white; 
@@ -13,98 +15,190 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
+            min-height: 100vh; 
             padding: 20px;
             text-align: center;
+        }
+        .logo { width: 120px; margin-bottom: 20px; }
+        h2 { margin-bottom: 10px; font-size: 22px; }
+        p { margin-bottom: 20px; font-size: 14px; opacity: 0.8; }
+        .form-container {
+            background: rgba(255,255,255,0.1);
+            padding: 24px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 12px;
+            outline: none;
         }
         .btn { 
             background: #00bf63; 
             color: white; 
-            padding: 15px 25px; 
+            padding: 14px 25px; 
             border-radius: 8px; 
             text-decoration: none; 
             font-weight: bold; 
-            margin-top: 20px; 
-            display: inline-block;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
         }
-        .logo { 
-            width: 150px; 
-            margin-bottom: 20px; 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        .debug { 
-            margin-top: 20px; 
-            padding: 10px; 
-            background: rgba(255,255,255,0.1); 
-            border-radius: 5px; 
-            font-size: 11px; 
-            word-break: break-all;
-            max-width: 90%;
-        }
+        .error { color: #ff6b6b; margin-bottom: 12px; font-size: 14px; }
+        .success { color: #00bf63; background: rgba(0,191,99,0.15); padding: 16px; border-radius: 8px; margin-bottom: 12px; font-size: 15px; }
+        .invalid { padding: 40px 20px; }
     </style>
 </head>
 <body>
     <img src="assets/logo.png" alt="StickerSwap Logo" class="logo">
-    <h2>Restableciendo tu contraseña...</h2>
-    <p id="message">Tocá el botón para abrir StickerSwap</p>
     
-    <a id="app-link" href="#" class="btn">Abrir StickerSwap</a>
-    
-    <div id="debug-info" class="debug" style="display: none;"></div>
+    <div id="loading">
+        <h2>Verificando enlace...</h2>
+        <p>Espera un momento</p>
+    </div>
+
+    <div id="form-section" style="display: none;">
+        <h2>Restablecer Contraseña</h2>
+        <p>Ingresá tu nueva contraseña</p>
+        <div class="form-container">
+            <input type="password" id="newPassword" placeholder="Nueva contraseña" />
+            <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" />
+            <div id="error-msg" class="error" style="display: none;"></div>
+            <button class="btn" id="resetBtn" onclick="handleReset()">Cambiar Contraseña</button>
+        </div>
+    </div>
+
+    <div id="success-section" style="display: none;">
+        <div class="success">
+            <h2>✅ ¡Contraseña actualizada!</h2>
+            <p style="margin-top: 10px; opacity: 1;">Ya podés volver a la app e iniciar sesión con tu nueva contraseña.</p>
+        </div>
+    </div>
+
+    <div id="invalid-section" class="invalid" style="display: none;">
+        <h2>Enlace inválido o expirado</h2>
+        <p>Solicitá un nuevo correo de restablecimiento desde la app.</p>
+    </div>
 
     <script>
-        // Obtener el hash de la URL (#access_token=...&type=recovery)
-        const hash = window.location.hash;
-        const debugDiv = document.getElementById('debug-info');
+        // Tu Supabase config (las mismas credenciales de tu app)
+        const SUPABASE_URL = 'https://pmodotofheuvamkfnwem.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtb2RvdG9maGV1dmFta2Zud2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNDE1ODQsImV4cCI6MjA3MDYxNzU4NH0.W4zGbx1d9QT3FNtGXG6b1L4-BiqFbxEOxPfp22uDbH4';
         
-        if (hash && hash.length > 1) {
-            // Remover el # inicial
-            const hashWithoutSymbol = hash.substring(1);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Verificar el hash de la URL
+        async function init() {
+            const hash = window.location.hash;
             
-            // Convertir el hash en query params para iOS
-            // De: stickerswap://reset-password#access_token=abc
-            // A:  stickerswap://reset-password?access_token=abc
-            const appUrl = "stickerswap://reset-password?" + hashWithoutSymbol;
-            
-            // Mostrar info de debug
-            debugDiv.innerHTML = "URL generada:<br>" + appUrl;
-            debugDiv.style.display = 'block';
-            
-            // Actualizar el botón
-            const appLink = document.getElementById('app-link');
-            appLink.href = appUrl;
-            
-            // Función para intentar abrir la app
-            function tryOpenApp() {
-                // Método 1: Cambiar location directamente
-                window.location.href = appUrl;
-                
-                // Método 2: Si no funciona después de 1 segundo, mostrar instruciones
-                setTimeout(() => {
-                    document.getElementById('message').innerText = 
-                        "Si la app no se abrió, toca el botón nuevamente";
-                }, 1000);
+            if (!hash || hash.length <= 1) {
+                showInvalid();
+                return;
             }
             
-            // Listener del botón
-            appLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                tryOpenApp();
-            });
-            
-            // Intentar abrir automáticamente después de un breve delay
-            setTimeout(() => {
-                tryOpenApp();
-            }, 500);
-            
-        } else {
-            document.querySelector('h2').innerText = "Enlace inválido";
-            document.getElementById('message').innerText = 
-                "El enlace no contiene la información necesaria. Por favor, solicita un nuevo correo desde la aplicación.";
-            document.getElementById('app-link').style.display = 'none';
-            debugDiv.innerHTML = "Hash no encontrado en URL";
-            debugDiv.style.display = 'block';
+            try {
+                // Extraer tokens del hash
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+                const type = hashParams.get('type');
+                
+                if (!accessToken || type !== 'recovery') {
+                    showInvalid();
+                    return;
+                }
+                
+                // Establecer la sesión con los tokens de Supabase
+                const { data, error } = await supabaseClient.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken
+                });
+                
+                if (error) {
+                    showInvalid();
+                    return;
+                }
+                
+                // Mostrar formulario de nueva contraseña
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('form-section').style.display = 'block';
+                
+            } catch (e) {
+                showInvalid();
+            }
         }
+        
+        function showInvalid() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('invalid-section').style.display = 'block';
+        }
+        
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.innerText = msg;
+            el.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('error-msg').style.display = 'none';
+        }
+        
+        async function handleReset() {
+            hideError();
+            const password = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('resetBtn');
+            
+            if (!password || !confirm) {
+                showError('Completá ambos campos');
+                return;
+            }
+            if (password.length < 6) {
+                showError('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+            if (password !== confirm) {
+                showError('Las contraseñas no coinciden');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerText = 'Actualizando...';
+            
+            try {
+                const { error } = await supabaseClient.auth.updateUser({ password });
+                
+                if (error) {
+                    showError(error.message);
+                    btn.disabled = false;
+                    btn.innerText = 'Cambiar Contraseña';
+                    return;
+                }
+                
+                // Éxito
+                document.getElementById('form-section').style.display = 'none';
+                document.getElementById('success-section').style.display = 'block';
+                
+            } catch (e) {
+                showError('Error al actualizar la contraseña');
+                btn.disabled = false;
+                btn.innerText = 'Cambiar Contraseña';
+            }
+        }
+        
+        // Iniciar
+        init();
     </script>
 </body>
 </html>
