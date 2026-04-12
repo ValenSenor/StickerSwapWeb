@@ -54,6 +54,12 @@ serve(async (req) => {
           currency_id: "ARS",
         },
       ],
+      back_urls: {
+        success: `${siteUrl}/dashboard.html?payment=success`,
+        failure: `${siteUrl}/dashboard.html?payment=failure`,
+        pending: `${siteUrl}/dashboard.html?payment=pending`,
+      },
+      auto_return: "approved",
       notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
       external_reference: user.id,
     };
