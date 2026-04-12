@@ -107,7 +107,7 @@ nav .container {
 /* Hero Section */
 .hero {
     background: var(--primary);
-    padding: 180px 0 120px;
+    padding: 90px 0 120px;
     text-align: center;
     color: white;
     position: relative;
@@ -148,10 +148,38 @@ nav .container {
     z-index: 1;
 }
 
+.login-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.btn-login {
+    background: transparent;
+    border: 2px solid #00bf63;
+    color: #00bf63;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 36px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-login:hover {
+    background: #00bf63;
+    color: #1800ad;
+    box-shadow: 0 0 20px rgba(0, 191, 99, 0.4);
+    transform: translateY(-2px);
+}
+
 .hero-logo {
     width: 280px;
     height: 280px;
-    margin: -80px auto 30px;
+    margin: 0 auto 30px;
     animation: logoEntrance 1s cubic-bezier(0.34, 1.56, 0.64, 1);
     background: transparent;
 }
