@@ -1,9 +1,58 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+async function verifyMPSignature(req: Request, rawBody: string): Promise<boolean> {
+  const xSignature = req.headers.get("x-signature");
+  const xRequestId = req.headers.get("x-request-id");
+  if (!xSignature) return false;
+
+  // Parsear ts y v1 del header x-signature
+  const parts = Object.fromEntries(
+    xSignature.split(",").map((p) => p.split("=") as [string, string])
+  );
+  const ts = parts["ts"];
+  const v1 = parts["v1"];
+  if (!ts || !v1) return false;
+
+  // Obtener data.id del body
+  let dataId: string | undefined;
+  try {
+    dataId = JSON.parse(rawBody)?.data?.id;
+  } catch {
+    return false;
+  }
+
+  // Construir el mensaje a firmar según la documentación de MP
+  const message = `id:${dataId};request-id:${xRequestId ?? ""};ts:${ts};`;
+
+  const secret = Deno.env.get("MP_WEBHOOK_SECRET") ?? "";
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  const hex = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return hex === v1;
+}
+
 serve(async (req) => {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+
+    // Verificar firma de Mercado Pago
+    const valid = await verifyMPSignature(req, rawBody);
+    if (!valid) {
+      console.error("Firma de webhook inválida");
+      return new Response("unauthorized", { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody);
 
     // MP envía distintos tipos de notificaciones
     if (body.type !== "payment") {
