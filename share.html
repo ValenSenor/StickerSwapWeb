@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StickerSwap</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      min-height: 100vh; background: #1800ad; color: #fff;
+      gap: 20px; padding: 24px; text-align: center;
+    }
+    .logo { font-size: 28px; font-weight: bold; letter-spacing: 2px; }
+    .subtitle { font-size: 15px; opacity: 0.85; max-width: 320px; }
+    .btn {
+      display: inline-block; border-radius: 30px; padding: 14px 36px; font-size: 15px;
+      font-weight: bold; text-decoration: none; min-width: 240px; cursor: pointer;
+      border: none; font-family: inherit;
+    }
+    .btn-primary { background: #00bf63; color: #fff; }
+    .btn-secondary { background: transparent; color: #00bf63; border: 2px solid #00bf63; }
+    #actions { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="logo">StickerSwap</div>
+  <p class="subtitle" id="subtitle">Abriendo StickerSwap...</p>
+  <div id="actions"></div>
+
+  <script>
+  (function () {
+    var APP_STORE_URL = "https://apps.apple.com/app/id6759987969";
+    var PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.valensen.StickerSwap";
+    var PACKAGE_NAME = "com.valensen.StickerSwap";
+
+    var params = new URLSearchParams(window.location.search);
+    var uid = params.get("uid") || "";
+    var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    var subtitle = document.getElementById("subtitle");
+    var actions = document.getElementById("actions");
+
+    if (!UUID_RE.test(uid)) {
+      subtitle.textContent = "Link invalido o expirado.";
+      return;
+    }
+
+    var customScheme = "stickerswap://share?uid=" + uid;
+    var intentUrl = "intent://share?uid=" + uid +
+      "#Intent;scheme=stickerswap;package=" + PACKAGE_NAME +
+      ";S.browser_fallback_url=" + encodeURIComponent(PLAY_STORE_URL) + ";end";
+
+    var ua = navigator.userAgent || "";
+    var isAndroid = /android/i.test(ua);
+    var isIOS = /iphone|ipad|ipod/i.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var isMobile = isAndroid || isIOS;
+
+    function setActions(html) { actions.innerHTML = html; }
+
+    // Desktop
+    if (!isMobile) {
+      subtitle.textContent = "Descarga la app para ver las figuritas a intercambiar.";
+      setActions(
+        '<a class="btn btn-primary" href="' + APP_STORE_URL + '">Descargar en App Store</a>' +
+        '<a class="btn btn-secondary" href="' + PLAY_STORE_URL + '">Descargar en Google Play</a>'
+      );
+      return;
+    }
+
+    // Android: Intent URL hace fallback automatico a Play Store si no esta instalada
+    if (isAndroid) {
+      subtitle.textContent = "Tu amigo quiere comparar figuritas con vos.";
+      setActions(
+        '<button class="btn btn-primary" id="openBtn">Abrir en StickerSwap</button>' +
+        '<a class="btn btn-secondary" href="' + PLAY_STORE_URL + '">Descargar en Google Play</a>'
+      );
+      document.getElementById("openBtn").addEventListener("click", function () {
+        window.location = intentUrl;
+      });
+      // Intento automatico
+      setTimeout(function () { window.location = intentUrl; }, 250);
+      return;
+    }
+
+    // iOS
+    var appOpened = false;
+    var redirectTimer = null;
+
+    function markOpened() {
+      appOpened = true;
+      if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
+    }
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) markOpened();
+    });
+    window.addEventListener("blur", markOpened);
+    window.addEventListener("pagehide", markOpened);
+
+    function tryOpen() {
+      appOpened = false;
+      if (redirectTimer) clearTimeout(redirectTimer);
+      window.location = customScheme;
+      redirectTimer = setTimeout(function () {
+        if (!appOpened && !document.hidden) {
+          window.location.replace(APP_STORE_URL);
+        }
+      }, 2200);
+    }
+
+    subtitle.textContent = "Tu amigo quiere comparar figuritas con vos.";
+    setActions(
+      '<button class="btn btn-primary" id="openBtn">Abrir en StickerSwap</button>' +
+      '<a class="btn btn-secondary" href="' + APP_STORE_URL + '">Descargar en App Store</a>'
+    );
+    document.getElementById("openBtn").addEventListener("click", tryOpen);
+
+    // Intento automatico al cargar (Safari puede bloquearlo; el boton siempre funciona)
+    setTimeout(tryOpen, 150);
+  })();
+  </script>
+</body>
+</html>
